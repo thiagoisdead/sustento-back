@@ -93,31 +93,52 @@ export async function suggestMealPlan(data) {
     restrictions: formattedRestrictions,
   });
 
-  for (const [mealName, mealAliments] of Object.entries(suggestedMeals)) {
+ for (const [mealName, mealAliments] of Object.entries(suggestedMeals)) { // <--- CORREÇÃO AQUI
     const selfCreatedMeal = await createMeal({
-      meal_name: mealName,
-      meal_type: "FIXED",
-      plan_id: Number(mealPlanId),
+        meal_name: mealName,
+        meal_type: "FIXED",
+        plan_id: Number(mealPlanId),
     });
 
+    // Loop interno que itera sobre os alimentos da refeição (agora 'mealAliments' está definido)
     for (const [_, alimentData] of Object.entries(mealAliments)) {
-      const alimentRecord = await prisma.aliments.findFirst({
-        where: { name: alimentData.name },
-        select: { aliment_id: true },
-      });
+        let alimentRecord = await prisma.aliments.findFirst({
+            where: { name: alimentData.name },
+            select: { aliment_id: true },
+        });
 
-      if (!alimentRecord) {
-        continue;
-      }
+        let finalAlimentId;
 
-      await createMealAliment({
-        quantity: Number(alimentData.quantity),
-        measurement_unit: alimentData.measurement_unit.toUpperCase(),
-        meal_id: selfCreatedMeal.meal_id,
-        aliment_id: alimentRecord.aliment_id,
-      });
+        if (alimentRecord) {
+            finalAlimentId = alimentRecord.aliment_id;
+        } else {
+            try {
+                // ATENÇÃO: É NECESSÁRIO MAPEAMENTO COMPLETO DOS CAMPOS (brand, nutrientes, etc)
+                const newAliment = await prisma.aliments.create({
+                    data: {
+                        name: alimentData.name,
+                        brand: alimentData.brand,
+                        // Outros campos DE PROPRIEDADE do alimento devem ser mapeados aqui
+                    }
+                });
+                finalAlimentId = newAliment.aliment_id;
+                
+                await createLog({ message: `New aliment created: ${alimentData.name}`, action: "CREATE", entity_type: "ALIMENT" });
+
+            } catch (error) {
+                console.error("Erro ao criar novo alimento:", error);
+                continue;
+            }
+        }
+
+        await createMealAliment({
+            quantity: alimentData.quantity,
+            measurement_unit: alimentData.measurement_unit.toUpperCase(),
+            meal_id: selfCreatedMeal.meal_id,
+            aliment_id: finalAlimentId,
+        });
     }
-  }
+}
 
   const finalPlanTotals = await calculatePlanTotals(mealPlanId);
 
