@@ -165,7 +165,8 @@ enum MealType {
 //MODEL ALIMENT - START
 
 model Aliments {
-  aliment_id       Int      @id @default(autoincrement())
+  aliment_id       Int      @id @default(autoincrement())
+  external_id      String?
   bar_code         String?
   name             String
   brand            String?

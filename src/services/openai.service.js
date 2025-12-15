@@ -128,7 +128,7 @@ export async function generateDietSuggestion(userData) {
     : `**MANDATORY FOODS (OMNIVORE):** The generated list MUST include staple proteins: Peito de Frango, Carne Bovina, Salmão, Ovos, Arroz integral, Feijão preto, Batata Doce.`;
 
     const conceptPrompt = `
-        You are a professional nutritionist. Based on the user's data and macro goals (Cal: ${target_calories}, Prot: ${target_protein}g, Carbs: ${target_carbs}g, Fat: ${target_fat}g), suggest a list of 40 essential, common, and healthy food names (in Portuguese) that would form the basis of this diet. 
+        You are a professional nutritionist. Based on the user's data and macro goals (Cal: ${target_calories}, Prot: ${target_protein}g, Carbs: ${target_carbs}g, Fat: ${target_fat}g), suggest a list of 10 essential, common, and healthy food names (in Portuguese) that would form the basis of this diet. 
         
         **CRITICAL NAMING RULE (SEARCH OPTIMIZATION):** Names MUST be simple, short, and use NO parentheses, no complex descriptions, and NO synonyms. Use only single, direct search terms (e.g., 'Peito de Frango', 'Salmão', 'Ovo', 'Arroz integral', 'Feijão').
 
