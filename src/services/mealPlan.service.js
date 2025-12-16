@@ -142,6 +142,16 @@ export async function suggestMealPlan(data) {
 
   const finalPlanTotals = await calculatePlanTotals(mealPlanId);
 
+  await prisma.mealPlans.update({
+    where: { plan_id: Number(mealPlanId) },
+    data: {
+        target_calories: finalPlanTotals.total_calories, 
+        target_protein: finalPlanTotals.total_protein,
+        target_carbs: finalPlanTotals.total_carbs,
+        target_fat: finalPlanTotals.total_fat,
+    },
+  });
+
   let fullMealPlanInfo = await prisma.mealPlans.findUnique({
     where: { plan_id: Number(mealPlanId) },
     select: {
@@ -194,10 +204,7 @@ export async function suggestMealPlan(data) {
         entity_type: "MEAL PLAN"
       });
 
-  return {
-    planDetails: finalPlanTotals,
-    totals: fullMealPlanInfo,
-  };
+  return fullMealPlanInfo;
 }
 
 export async function listMealPlans() {
