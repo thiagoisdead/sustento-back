@@ -38,3 +38,13 @@ export async function deleteMealRecord(req, res) {
   }
 }
 
+export async function getMealRecordsByMealId(req, res) {
+  try {
+    const mealId = req.params.id;
+    const mealRecords = await MealRecordService.getMealRecordsByMealId(mealId);
+    res.json(mealRecords);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+}
+

@@ -58,3 +58,24 @@ export async function deleteMealRecord(id) {
     where: { record_id: Number(id) },
   });
 }
+
+export async function getMealRecordsByMealId(mealId) {
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 59, 59, 999);
+
+  return await prisma.mealRecords.findMany({
+    where: {
+      meal_id: Number(mealId), 
+      created_at: {            
+        gte: startOfDay,       
+        lte: endOfDay,         
+      },
+    },
+    orderBy: {
+      created_at: 'desc' 
+    }
+  });
+}
