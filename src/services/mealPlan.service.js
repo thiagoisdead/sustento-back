@@ -4,6 +4,25 @@ import { createMeal } from "./meal.service.js";
 import { createMealAliment } from "./mealAliment.service.js"
 import { createLog } from "./log.service.js";
 
+
+function getDefaultMealTime(mealName) {
+    const fixedTimes = {
+        'breakfast': '07:00',
+        'lunch': '13:00',
+        'dinner': '20:00',
+    };
+
+    const normalizedName = mealName.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    const timeString = fixedTimes[normalizedName] || null;
+
+    if (timeString) {
+        return timeString; 
+    }
+
+    return null;
+}
+
 export async function createMealPlan(data) {
   const { target_calories, target_protein, target_fat, target_carbs } =
     await calculateTargetNutrients(data.user_id);
@@ -93,14 +112,17 @@ export async function suggestMealPlan(data) {
     restrictions: formattedRestrictions,
   });
 
- for (const [mealName, mealAliments] of Object.entries(suggestedMeals)) { // <--- CORREÇÃO AQUI
+ for (const [mealName, mealAliments] of Object.entries(suggestedMeals)) {
+
+    const fixedTime = getDefaultMealTime(mealName);
+
     const selfCreatedMeal = await createMeal({
         meal_name: mealName,
-        meal_type: "FIXED",
+        meal_type: fixedTime ? "FIXED" : "FREE",
         plan_id: Number(mealPlanId),
+        time: fixedTime,
     });
 
-    // Loop interno que itera sobre os alimentos da refeição (agora 'mealAliments' está definido)
     for (const [_, alimentData] of Object.entries(mealAliments)) {
         let alimentRecord = await prisma.aliments.findFirst({
             where: { name: alimentData.name },
@@ -142,6 +164,16 @@ export async function suggestMealPlan(data) {
 
   const finalPlanTotals = await calculatePlanTotals(mealPlanId);
 
+  await prisma.mealPlans.update({
+    where: { plan_id: Number(mealPlanId) },
+    data: {
+        target_calories: finalPlanTotals.total_calories, 
+        target_protein: finalPlanTotals.total_protein,
+        target_carbs: finalPlanTotals.total_carbs,
+        target_fat: finalPlanTotals.total_fat,
+    },
+  });
+
   let fullMealPlanInfo = await prisma.mealPlans.findUnique({
     where: { plan_id: Number(mealPlanId) },
     select: {
@@ -161,6 +193,7 @@ export async function suggestMealPlan(data) {
           meal_id: true,
           meal_name: true,
           meal_type: true,
+          time: true,
           MealAliments: {
             select: {
               quantity: true,
@@ -194,10 +227,7 @@ export async function suggestMealPlan(data) {
         entity_type: "MEAL PLAN"
       });
 
-  return {
-    planDetails: finalPlanTotals,
-    totals: fullMealPlanInfo,
-  };
+  return fullMealPlanInfo;
 }
 
 export async function listMealPlans() {
