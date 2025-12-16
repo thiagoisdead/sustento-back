@@ -128,7 +128,7 @@ export async function generateDietSuggestion(userData) {
     : `**MANDATORY FOODS (OMNIVORE):** The generated list MUST include staple proteins: Peito de Frango, Carne Bovina, Salmão, Ovos, Arroz integral, Feijão preto, Batata Doce.`;
 
     const conceptPrompt = `
-        You are a professional nutritionist. Based on the user's data and macro goals (Cal: ${target_calories}, Prot: ${target_protein}g, Carbs: ${target_carbs}g, Fat: ${target_fat}g), suggest a list of 10 essential, common, and healthy food names (in Portuguese) that would form the basis of this diet. 
+        You are a professional nutritionist. Based on the user's data and macro goals (Cal: ${target_calories}, Prot: ${target_protein}g, Carbs: ${target_carbs}g, Fat: ${target_fat}g), suggest a list of 30 essential, common, and healthy food names (in Portuguese) that would form the basis of this diet. 
         
         **CRITICAL NAMING RULE (SEARCH OPTIMIZATION):** Names MUST be simple, short, and use NO parentheses, no complex descriptions, and NO synonyms. Use only single, direct search terms (e.g., 'Peito de Frango', 'Salmão', 'Ovo', 'Arroz integral', 'Feijão').
 
@@ -146,7 +146,7 @@ export async function generateDietSuggestion(userData) {
     const conceptCompletion = await openai.chat.completions.create({
         model: "gpt-4-turbo", 
         messages: [
-            { role: "system", content: "You are a professional nutrition expert. Your only task is to generate JSON output." },
+            { role: "system", content: "You are a professional nutrition expert. Your only task is to generate JSON output. The JSON must be an object with one key: 'foods', whose value is an array of strings." },
             { role: "user", content: conceptPrompt },
         ],
         temperature: 0.8, 
@@ -255,6 +255,8 @@ export async function generateDietSuggestion(userData) {
                 * **Example of Conversion:** {"quantity": 2, "measurement_unit": "un"}.
             5.  **Food Source:** You MUST only use the exact names of ingredients listed in the 'AVAILABLE FOODS' section.
             6.  **Total Calories:** You MUST NOT include the "totalCalories" key.
+
+            Output only a JSON object containing a single key called 'foods', and the value MUST be an array of strings.
 
             The required JSON format is:
             {
