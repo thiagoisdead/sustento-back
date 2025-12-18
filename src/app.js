@@ -10,10 +10,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 const corsOptions = {
-  origin: ["http://localhost:8081"], 
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  credentials: true, 
-  optionsSuccessStatus: 200
+    origin: "*",
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    credentials: true,
+    optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 // =============================================
